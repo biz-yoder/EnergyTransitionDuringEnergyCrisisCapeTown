@@ -6,17 +6,16 @@ import geopandas as gpd
 import glob
 import time
 import re
-# ------------------------------
-# Config
-# ------------------------------
+
+#Paths
 LOADSHED_FILE = "/home/ey53/vscode-server-backup/CapeTown_Workflow/Loadshedding_schedule.csv"
 BLOCKS_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/6_out"
 OUTPUT_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/7_out"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ------------------------------
-# Step 1 — Load Loadshedding Schedule
-# ------------------------------
+#######################################
+# Load load shedding schedule
+
 print(f"📂 Loading Load Shedding Schedule: {LOADSHED_FILE}")
 shed_df = pd.read_csv(LOADSHED_FILE)
 
@@ -38,8 +37,8 @@ print(shed_df["month_year"].unique())
 def extract_area_number(row):
     """
     Extract the number following 'Area' from:
-        1️⃣ Area column first
-        2️⃣ Stage column if not found in Area
+        Area column first
+        Stage column if not found in Area
     """
     area_pattern = re.compile(r"area\s*([0-9]+)", flags=re.IGNORECASE)
 
@@ -63,25 +62,26 @@ def extract_area_number(row):
 # Apply to the dataframe
 shed_df["Area_number"] = shed_df.apply(extract_area_number, axis=1)
 shed_df = shed_df[shed_df["Area_number"].notna()].copy()
-# Optional summary
+
+# Summary
 print("\n=== Extracted Area numbers ===")
 print(shed_df[["Stage", "Area", "Area_number"]].head(20))
 print(shed_df["Area_number"].value_counts(dropna=False).sort_index())
 print(f"✅ Extracted valid Area numbers for {shed_df['Area_number'].notna().sum():,} of {len(shed_df):,} rows")
 print(shed_df.columns)
 
-# ------------------------------
-# Step 2 — Summarize by Area and month_year
-# ------------------------------
+#######################################
+# Summarize by Area and month_year
+
 print("📌 Summarizing load shedding by Area and month_year...")
 shed_summary = shed_df.groupby(["Area_number", "month_year"], as_index=False)["Duration min"].sum()
 shed_summary.rename(columns={"Duration min": "total_duration_min"}, inplace=True)
 print("✅ Summary ready:")
 print(shed_summary.head())
 
-# ------------------------------
-# Step 3 — Merge with yearly data
-# ------------------------------
+#######################################
+# Merge with yearly data
+
 parquet_files = glob.glob(os.path.join(BLOCKS_DIR, "*.parquet"))
 merged_list = []
 output_path = os.path.join(OUTPUT_DIR, "combined_merged.parquet")
@@ -92,7 +92,7 @@ for file_path in parquet_files:
         gdf = gpd.read_parquet(file_path)
         print(f"   - Loaded {len(gdf):,} rows.")
 
-        # Rename BlockID → Area
+        # Rename BlockID to Area
         if "BlockID" in gdf.columns:
             gdf = gdf.rename(columns={"BlockID": "Area_number"})
         gdf["Area_number"] = gdf["Area_number"].astype(str).str.upper().str.strip()
@@ -114,10 +114,7 @@ for file_path in parquet_files:
         merged = pd.merge(gdf, shed_summary, how="left",
                         left_on=["Area_number", "month_year"],
                         right_on=["Area_number", "month_year"])
-        # print(merged.columns)
 
-        # output_path = os.path.join(OUTPUT_DIR, os.path.basename(file_path))
-        # merged.to_parquet(output_path)
         print(f"✅ Saved merged data: {output_path}")
 
         merged_list.append(merged)
@@ -126,7 +123,7 @@ for file_path in parquet_files:
 
 print("\n✅ All files processed.")
 
-# Combine and save if there are any successful merges
+# Save
 if merged_list:
     combined_merged = pd.concat(merged_list, ignore_index=True)
     combined_merged.to_parquet(output_path, index=False)
