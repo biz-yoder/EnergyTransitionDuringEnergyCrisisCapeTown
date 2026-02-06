@@ -1,13 +1,17 @@
-# Import and combine contract location data
+"""
+Import and combine contract location data
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import os
 import pandas as pd
 from datetime import datetime
 
-
 # Paths
-location_folder = "/home/ey53/vscode-server-backup/CapeTown_Workflow/ContractLocations"
-output_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/2a_out/new_location_total.parquet"
+location_folder = "data/ContractLocations"
+output_path = "output/2a_out/new_location_total.parquet"
 
 #######################################
 # Import location files

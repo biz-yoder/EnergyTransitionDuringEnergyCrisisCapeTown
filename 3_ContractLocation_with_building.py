@@ -1,4 +1,9 @@
-# Merges contract location data with building data from overture maps
+"""
+Merge contract location data with building data from Overture maps.
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 from shapely import wkt
 import geopandas as gpd
@@ -7,16 +12,16 @@ import os
 
 
 # Paths
-merged_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/2b_out/out_contract_with_location.parquet"
-buildings_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/capetown_buildings2.parquet"
-output_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/3_out/out_contractlocation_with_building.parquet"
+MERGED_PATH = "output/2b_out/out_contract_with_location.parquet"
+BUILDINGS_PATH = "data/capetown_buildings2.parquet"
+OUTPUT_PATH = "output/3_out/out_contractlocation_with_building.parquet"
 
-os.makedirs(os.path.dirname(output_path), exist_ok=True)
+os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
 
 #######################################
 # Load contract location+transactions data and filter WKT
 
-merged_df = pd.read_parquet(merged_path)
+merged_df = pd.read_parquet(MERGED_PATH)
 
 # Total unique contracts before filtering
 total_unique_contracts_all = merged_df['contract_ID'].nunique()
@@ -59,7 +64,7 @@ print(f"✅ Geometry conversion successful. Rows remaining: {len(merged_gdf):,}"
 #######################################
 # Load building data
 
-buildings_gdf = gpd.read_parquet(buildings_path)
+buildings_gdf = gpd.read_parquet(BUILDINGS_PATH)
 print(f"[Step 2] Loaded buildings_gdf with {len(buildings_gdf):,} rows")
 
 # Ensure CRS match

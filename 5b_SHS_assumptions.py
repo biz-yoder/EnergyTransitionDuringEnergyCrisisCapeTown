@@ -1,4 +1,9 @@
-# Cleans SHS predictions based on constructed assumptions
+"""
+Clean and consolidate SHS predictions based on constructed assumptions.
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import pandas as pd
 import glob
@@ -6,12 +11,12 @@ import os
 import numpy as np
 
 # Paths
-parquet_dir = "/home/ey53/vscode-server-backup/CapeTown_Workflow/5a_out"
-parquet_out = "/home/ey53/vscode-server-backup/CapeTown_Workflow/5b_out"
+parquet_dir = "./5a_out"
+parquet_out = "./5b_out"
 
 # Find all parquet files
 parquet_files = glob.glob(os.path.join(parquet_dir, "*.parquet"))
-print(f"📂 Found {len(parquet_files)} parquet files")
+print(f"Found {len(parquet_files)} parquet files")
 
 # Read and combine
 dfs = []
@@ -25,7 +30,7 @@ if dfs:
     combined_df = pd.concat(dfs, ignore_index=True)
     print(f"\n✅ Combined DataFrame: {len(combined_df):,} total rows, {len(combined_df.columns)} columns")
 else:
-    raise ValueError("⚠️ No Parquet files found in the directory.")
+    raise ValueError("No Parquet files found in the directory.")
 
 # Clean wkt
 combined_df = combined_df.loc[
@@ -38,10 +43,10 @@ combined_df = combined_df.loc[
 # Unique contracts
 if "contract_ID" in combined_df.columns:
     unique_contracts = combined_df["contract_ID"].nunique()
-    print(f"🔸 Total unique contracts: {unique_contracts:,}")
+    print(f"Total unique contracts: {unique_contracts:,}")
 if "Type" in combined_df.columns:
     unique_by_type = combined_df.groupby("Type")["contract_ID"].nunique().reset_index()
-    print("\n🔹 Unique contracts by Type:")
+    print("\n Unique contracts by Type:")
     for _, row in unique_by_type.iterrows():
         print(f"   {row['Type']}: {row['contract_ID']:,}")
 
@@ -125,18 +130,21 @@ combined_df = combined_df.merge(
     how='left'
 )
 
+combined_df['shs_label_edit'] = combined_df['shs_label']
+combined_df['shs_area_m2_edit'] = combined_df['shs_area_m2']
+
 #######################################
 # Remove SHS info where SHS doesn't exist
 
-combined_df.loc[~combined_df['has_shs'], ['shs_label', 'shs_area_m2']] = np.nan
+combined_df.loc[~combined_df['has_shs'], ['shs_label_edit', 'shs_area_m2_edit']] = np.nan
 
 #######################################
 # Forward-fill SHS attributes within contract
 
 combined_df = combined_df.sort_values(['contract_ID', 'month_year'])
-combined_df[['shs_label', 'shs_area_m2']] = (
+combined_df[['shs_label_edit', 'shs_area_m2_edit']] = (
     combined_df
-    .groupby('contract_ID')[['shs_label', 'shs_area_m2']]
+    .groupby('contract_ID')[['shs_label_edit', 'shs_area_m2_edit']]
     .ffill()
 )
 
@@ -162,26 +170,26 @@ print(
 # - shs_source and shs_imputed flags allow distinguishing observed vs gap-filled vs forward-extended data.
 # -----------------------------------------------------------------------------------
 
-combined_df['shs_label'] = np.where(
-    combined_df['has_shs'] & combined_df['shs_label'].isna(),
+combined_df['shs_label_edit'] = np.where(
+    combined_df['has_shs'] & combined_df['shs_label_edit'].isna(),
     'PV_normal',
-    combined_df['shs_label']
+    combined_df['shs_label_edit']
 )
 
 # Count unique contracts per year
 unique_contracts_per_year = combined_df.groupby('year')['contract_ID'].nunique().reset_index()
 unique_contracts_per_year.rename(columns={'contract_ID': 'unique_contracts'}, inplace=True)
-print("\n🔹 Unique contracts by year:")
+print("\n Unique contracts by year:")
 print(unique_contracts_per_year)
 
 # Filter for households with SHS
-pv_df = combined_df[combined_df['shs_label'] == "PV_normal"]
+pv_df = combined_df[combined_df['shs_label_edit'] == "PV_normal"]
 
 # Count unique contracts per year among PV households
 unique_contracts_per_year = pv_df.groupby('year')['contract_ID'].nunique().reset_index()
 unique_contracts_per_year.rename(columns={'contract_ID': 'unique_contracts'}, inplace=True)
 
-print("\n🔹 Unique PV_normal contracts by year:")
+print("\n Unique PV_normal contracts by year:")
 print(unique_contracts_per_year)
 
 months_per_contract = combined_df.groupby('contract_ID')['month_year'].nunique()
@@ -190,4 +198,4 @@ print(months_per_contract.describe())
 # Save
 output_file = os.path.join(parquet_out, "combined.parquet")
 combined_df.to_parquet(output_file, index=False)
-print(f"\n✅ Saved combined parquet to {output_file}")
+print(f"\n Saved combined parquet to {output_file}")

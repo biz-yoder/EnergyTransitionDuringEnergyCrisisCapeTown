@@ -1,21 +1,30 @@
-# Merges yearly SHS panel data (location + capacity) with buildings
+"""
+Merge yearly SHS panel data (PV location + capacity) with building polygons.
 
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 import pandas as pd
 import geopandas as gpd
 import os
 import time
 
+# Base directories
+DATA_DIR = "data" 
+BUILDINGS_DIR = "data"     
+OUTPUT_DIR = "output" 
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 # Paths
 CSV_PATHS = {
-    2020: "/shared/data/climateplus2025/Postprocessing_EntireDataset_CapeTown_Image_2018_2023/2020/output_stage_4/prediction_merged_2023.csv",
-    2021: "/shared/data/climateplus2025/Postprocessing_EntireDataset_CapeTown_Image_2018_2023_Mask2Former_1024_Nov29/2021/output_post_processing_polygonization_grouping_drop_small_objects/prediction_merged_2021_final.csv",
-    2022: "/shared/data/climateplus2025/Postprocessing_EntireDataset_CapeTown_Image_2018_2023_Mask2Former_1024_Nov29/2022/output_post_processing_polygonization_grouping_drop_small_objects/prediction_merged_2022_final.csv",
-    2023: "/shared/data/climateplus2025/Postprocessing_EntireDataset_CapeTown_Image_2018_2023_Mask2Former_1024_Nov29/2023/output_post_processing_polygonization_grouping_drop_small_objects/prediction_merged_2023_final.csv"
+    2020: os.path.join(DATA_DIR, "prediction_merged_2020.csv"),
+    2021: os.path.join(DATA_DIR, "prediction_merged_2021.csv"),
+    2022: os.path.join(DATA_DIR, "prediction_merged_2022.csv"),
+    2023: os.path.join(DATA_DIR, "prediction_merged_2023.csv")
 }
 
-BUILDINGS_PATH = "/home/ey53/vscode-server-backup/CapeTown_Workflow/capetown_buildings2.parquet"
-OUTPUT_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/4_out"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+BUILDINGS_PATH = os.path.join(BUILDINGS_DIR, "capetown_buildings2.parquet")
 
 # Set up
 CHUNK_SIZE = 50_000
@@ -92,35 +101,27 @@ for year, csv_path in CSV_PATHS.items():
             total_dropped_area += dropped_area
             log(f"Dropped {dropped_area:,} rows (area_m2 < 1.7). Remaining: {len(chunk):,}")
         else:
-            log("⚠️ No 'area_m2' column found — skipping area filter.")
+            log("No 'area_m2' column found — skipping area filter.")
 
         if chunk.empty:
             log(f"Chunk {i}: No PV_normal rows left after filtering, skipping.")
             continue
 
-        expected_col = "polygon_centroid_GPS[lat,lon]"
-
-        if expected_col not in chunk.columns:
-            # Look for a similar column
-            possible_cols = [c for c in chunk.columns if c.startswith("polygon_centroid_GPS_lat_lon")]
-            if possible_cols:
-                # Rename the first match
-                chunk.rename(columns={possible_cols[0]: expected_col}, inplace=True)
-                log(f"INFO: Renamed {possible_cols[0]} to {expected_col} for {year}, chunk {i}")
-            else:
-                log(f"ERROR: Missing GPS column for {year}, chunk {i}")
-                continue
-        
-        # Robust GPS parsing
-        gps_col = "polygon_centroid_GPS[lat,lon]"
+        gps_cols = [c for c in chunk.columns if "polygon_centroid_GPS" in c]
+        if gps_cols:
+            gps_col = gps_cols[0]
+        else:
+            log(f"ERROR: Missing GPS column for {year}, chunk {i}")
+            continue
 
         # Remove brackets/parentheses, strip spaces
         coord_clean = chunk[gps_col].str.replace(r"[\(\)\[\]]", "", regex=True).str.strip()
 
         # Split on comma into two columns
         gps = coord_clean.str.split(",", expand=True)
-        chunk.loc[:, "lat"] = pd.to_numeric(gps[0].str.strip(), errors="coerce")
-        chunk.loc[:, "lon"] = pd.to_numeric(gps[1].str.strip(), errors="coerce")
+        chunk = chunk.copy()
+        chunk["lat"] = pd.to_numeric(gps[0].str.strip(), errors="coerce")
+        chunk["lon"] = pd.to_numeric(gps[1].str.strip(), errors="coerce")
 
         # Drop rows with invalid coordinates
         chunk = chunk.dropna(subset=["lat", "lon"])
@@ -140,6 +141,10 @@ for year, csv_path in CSV_PATHS.items():
         minx, miny, maxx, maxy = gdf.total_bounds
         b_subset = buildings_gdf.cx[minx:maxx, miny:maxy]
         log(f"Spatial join subset: {len(b_subset):,} buildings")
+
+        if b_subset.empty:
+            log(f"No buildings in spatial subset for chunk {i}, skipping.")
+            continue
 
         # Spatial join
         start_join = time.time()
@@ -169,9 +174,16 @@ for year, csv_path in CSV_PATHS.items():
                 unmatched = unmatched.drop(columns=['index_right'])
 
             b_subset_free = b_subset[~b_subset.index.isin(merged["index_right"].dropna())].copy()
+            
             if not b_subset_free.empty:
-                unmatched = unmatched.to_crs("EPSG:32734")
-                b_subset_proj = b_subset_free.to_crs("EPSG:32734")
+                if unmatched.crs is None:
+                    unmatched.set_crs("EPSG:4326", inplace=True)
+                
+                b_subset_proj = b_subset_free.to_crs("EPSG:32734")  
+                unmatched = unmatched.to_crs("EPSG:32734")  
+                if b_subset_proj.crs is None:
+                    b_subset_proj.set_crs("EPSG:4326", inplace=True)
+
                 b_subset_proj = b_subset_proj.reset_index().rename(columns={'index': 'building_index'})
 
                 nearest = gpd.sjoin_nearest(
@@ -205,7 +217,7 @@ for year, csv_path in CSV_PATHS.items():
         # Save
         chunk_parquet = os.path.join(OUTPUT_DIR, f"{year}_chunk{i}.parquet")
         merged.to_parquet(chunk_parquet)
-        log(f"✅ Saved chunk {i} → {chunk_parquet}")
+        log(f"Saved chunk {i} → {chunk_parquet}")
 
         with open(checkpoint_file, "a") as f:
             f.write(f"{i}\n")
@@ -228,4 +240,4 @@ for year, csv_path in CSV_PATHS.items():
         log(f"Retention rate: {retention_rate:.2f}%")
     log("=============================\n")
 
-log("✅ All years processed successfully.")
+log("All years processed successfully.")

@@ -1,21 +1,25 @@
-# Imports all old prepaid transactions (before April 2021) and postpaid data.
-# Transforms all transactions into monthly panel data
+"""
+Transforms all old transaction data (prepaid before April 2021 and all postpaid) into monthly panel
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import polars as pl
 import os
 from time import time
 
 # Paths
-parquet_file = "/home/ey53/vscode-server-backup/CapeTown_Workflow/1_out/combined_electricity_data.parquet"
-output_dir = "/home/ey53/vscode-server-backup/CapeTown_Workflow/1_out"
-os.makedirs(output_dir, exist_ok=True)
+parquet_file = "data/1_out/combined_electricity_data.parquet"
+output_dir = "output/1_out"
 final_file = os.path.join(output_dir, "final_monthly_old_efficient.parquet")
+os.makedirs(output_dir, exist_ok=True)
 
 # Set up
 use_columns = ["totalunits", "month_year", "contract_account_hashed", "contract_hashed", "Type", "rate_category"]
 
 t0 = time()
-print("[INFO] Loading data lazily...")
+print("Loading data lazily...")
 
 #######################################
 # Load data (lazy)
@@ -99,8 +103,8 @@ monthly = (
 # Save
 
 monthly.collect().write_parquet(final_file)
-print(f"[INFO] ✅ Final merged file saved: {final_file}")
-print(f"[INFO] Total runtime: {time() - t0:.1f}s")
+print(f"Final merged file saved: {final_file}")
+print(f"Total runtime: {time() - t0:.1f}s")
 
 #######################################
 # Final checks
@@ -121,5 +125,5 @@ sanity_df = raw_by_type.join(processed_by_type, on="Type", how="full").with_colu
     ((pl.col("raw_totalunits") - pl.col("processed_kwh")) / pl.col("raw_totalunits") * 100).alias("diff_pct")
 ])
 
-print("\n[INFO] Sanity Check by Type:")
+print("\n Sanity Check by Type:")
 print(sanity_df)

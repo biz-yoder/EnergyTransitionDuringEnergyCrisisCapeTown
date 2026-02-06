@@ -1,4 +1,9 @@
-#Match contracts with locations data
+"""
+Merge monthly contract data with location information.
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import pandas as pd
 from datetime import datetime
@@ -6,11 +11,12 @@ import os
 import polars as pl
 
 # Paths
-locations_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/2a_out/new_location_total.parquet"
-monthly_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/1_out/final_monthly_new.parquet"
-devices_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/devices_total.parquet"
-old_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/1_out/final_monthly_old_efficient.parquet"
-output_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/2b_out/out_contract_with_location.parquet"
+locations_path = "output/2a_out/new_location_total.parquet"
+monthly_path = "output/1_out/final_monthly_new.parquet"
+devices_path = "data/devices_total.parquet"
+old_path = "output/1_out/final_monthly_old_efficient.parquet"
+output_path = "output/2b_out/out_contract_with_location.parquet"
+
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 #######################################
@@ -236,7 +242,7 @@ print("="*80)
 # Save
 
 df_merged.to_parquet(output_path, index=False)
-print(f"\n✅ Saved final dataset to: {output_path}")
+print(f"\n Saved final dataset to: {output_path}")
 print(f"Final rows: {len(df_merged):,} ({len(df_merged)/baseline_rows*100:.1f}% of baseline)")
 print(f"Final unique contracts: {df_merged['contract_ID'].nunique():,} "
       f"({df_merged['contract_ID'].nunique()/baseline_contracts*100:.1f}% of baseline)")

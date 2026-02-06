@@ -1,14 +1,20 @@
-# Match contracts with SHS based on building matches
+"""
+Match contract accounts to Solar Home Systems (SHS) using building IDs.
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import os
 import glob
 import duckdb
 import pandas as pd
 
-# Paths
-BUILD_SHS_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/4_out"
-CONTRACT_BUILD_FILE = "/home/ey53/vscode-server-backup/CapeTown_Workflow/3_out/out_contractlocation_with_building.parquet"
-OUTPUT_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/5a_out"
+# Base directories
+DATA_DIR = "data"           
+BUILD_SHS_DIR = "output/4_out"
+CONTRACT_BUILD_FILE = "output/3_out/out_contractlocation_with_building.parquet"
+OUTPUT_DIR = "output/5a_out"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Set up
@@ -17,7 +23,7 @@ YEARS = [2020, 2021, 2022, 2023]
 #######################################
 # Load contract data
 
-print(f"📂 Loading contract_build: {CONTRACT_BUILD_FILE}")
+print(f"Loading contract_build: {CONTRACT_BUILD_FILE}")
 contract_build = pd.read_parquet(CONTRACT_BUILD_FILE)
 
 # Make sure 'building_id' column exists
@@ -53,7 +59,7 @@ print(f"Found {len(all_shs_files)} SHS parquet files total")
 # Process per year
 
 for year in YEARS:
-    print(f"\n📌 Processing year {year}")
+    print(f"\n Processing year {year}")
     output_file = os.path.join(OUTPUT_DIR, f"merged_contract_SHS_{year}.parquet")
     if os.path.exists(output_file):
         os.remove(output_file)
@@ -82,7 +88,7 @@ for year in YEARS:
     # Filter SHS files for this year
     year_shs_files = [f for f in all_shs_files if f"{year}_" in os.path.basename(f)]
     if not year_shs_files:
-        print(f"⚠️ No SHS files found for year {year}. Saving contract_build as-is.")
+        print(f"No SHS files found for year {year}. Saving contract_build as-is.")
         con.execute(f"COPY contract_build TO '{output_file}' (FORMAT PARQUET)")
         con.close()
         continue
@@ -162,7 +168,7 @@ for year in YEARS:
     # Save
     con.execute(f"COPY merged TO '{output_file}' (FORMAT PARQUET)")
 
-    print(f"\n📊 Year {year} summary (unique contracts):")
+    print(f"\n Year {year} summary (unique contracts):")
     print(f"   🔹 Total unique contracts: {total_unique_contracts:,}")
     print(f"   🔹 Matched unique contracts: {matched_unique_contracts:,}")
     print(f"   🔹 Unmatched unique contracts: {unmatched_unique_contracts:,}")
@@ -171,4 +177,4 @@ for year in YEARS:
 
     con.close()
 
-print("✅ All years processed successfully.")
+print("All years processed successfully.")

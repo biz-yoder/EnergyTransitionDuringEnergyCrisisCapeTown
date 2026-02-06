@@ -1,13 +1,19 @@
-# Imports all postpaid data and prepaid data from March 2021 and earlier. 
+"""
+mports all postpaid data and prepaid data from March 2021 and earlier.
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import os
 import pandas as pd
 from datetime import datetime
 
 # Paths
-prepaid_folder = "/home/ey53/vscode-server-backup/CapeTown_Workflow/Old Prepaid"
-postpaid_folder = "/home/ey53/vscode-server-backup/CapeTown_Workflow/Postpaid"
-output_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/1_out/combined_electricity_data.parquet"
+prepaid_folder = "data/old_prepaid"
+postpaid_folder = "data/postpaid"
+output_path = "output/1_out/combined_electricity_data.parquet"
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 # Date of files for old prepaid transactions
 startdate = datetime(2020, 1, 1)
@@ -139,7 +145,8 @@ print("\n=== Combining Prepaid and Postpaid Data ===")
 
 if not prepaid_combined.empty or not postpaid_combined.empty:
     combined = pd.concat([prepaid_combined, postpaid_combined], ignore_index=True)
-    print(f"\n✅ Combined dataset created with {len(combined):,} total rows.")
+    combined = combined.drop_duplicates()
+    print(f"\n Combined dataset created with {len(combined):,} total rows.")
     print(f"   Prepaid rows:  {len(prepaid_combined):,}")
     print(f"   Postpaid rows: {len(postpaid_combined):,}")
     print(f"   Date range: {combined['month_year'].min()} → {combined['month_year'].max()}")
@@ -147,6 +154,6 @@ if not prepaid_combined.empty or not postpaid_combined.empty:
     
     # SAVE FINAL COMBINED DATA
     combined.to_parquet(output_path, index=False)
-    print(f"\n💾 Saved combined dataset to: {output_path}")
+    print(f"\n Saved combined dataset to: {output_path}")
 else:
-    print("\n⚠️ No data imported from either source.")
+    print("\n No data imported from either source.")

@@ -1,5 +1,9 @@
-# Imports all prepaid data (from April 2021 and later) with transaction time stamps.
-# Transforms all transactions into monthly panel data (entire dataset at once).
+"""
+Transforms all new transaction data (prepaid from April 2021 on) into monthly panel
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import polars as pl
 import os
@@ -7,13 +11,13 @@ from time import time
 import pandas as pd
 
 # Paths
-parquet_path = "/home/ey53/vscode-server-backup/CapeTown_Workflow/Prepaid_parquet"
-output_dir = "/home/ey53/vscode-server-backup/CapeTown_Workflow/1_out"
+parquet_path = "data/prepaid_parquet"  # folder with raw Parquet files
+output_dir = "output/1_out"            # save output here
 os.makedirs(output_dir, exist_ok=True)
+final_file = os.path.join(output_dir, "final_monthly_new.parquet")
 
 # Set up
 use_columns = ["totalunits", "trfname", "transaction_timestamp", "contract_account_hashed"]
-final_file = os.path.join(output_dir, "final_monthly_new.parquet")
 
 #######################################
 # MAIN
@@ -139,7 +143,7 @@ if __name__ == "__main__":
     # Save parquet
     
     monthly.write_parquet(final_file)
-    print(f"[INFO] ✅ Final merged file saved: {final_file}")
+    print(f"Final merged file saved: {final_file}")
 
     #######################################
     # Final checks
@@ -149,14 +153,14 @@ if __name__ == "__main__":
     diff = raw_total - processed_kwh
     diff_pct = diff / raw_total * 100
 
-    print("\n[INFO] Sanity Check:")
+    print("\n Sanity Check:")
     print(f"Raw totalunits: {raw_total:,.2f}")
     print(f"Processed kWh:  {processed_kwh:,.2f}")
     print(f"Difference: {diff:,.2f} ({diff_pct:.5f}%)")
 
     if abs(diff_pct) > 0.05:
-        print("[WARNING] ⚠️ Significant discrepancy detected!")
+        print("[WARNING] Significant discrepancy detected!")
     else:
-        print("[INFO] ✅ Sanity check passed!")
+        print("Sanity check passed!")
 
-    print(f"[INFO] Total runtime: {time() - start:.1f}s")
+    print(f"Total runtime: {time() - start:.1f}s")
