@@ -1,5 +1,5 @@
 """
-mports all postpaid data and prepaid data from March 2021 and earlier.
+Imports all postpaid data and prepaid data from March 2021 and earlier.
 
 Author: Elizabeth Yoder
 Date: February 2026
