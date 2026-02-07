@@ -44,12 +44,13 @@ The codebase is designed to be modular and reproducible, and is organized as fol
 ## Data
 
 | Dataset | Description  | Source / Notes  |
-| --------| ------------ | --------------- |
-| `data/old_prepaid`| Old prepaid transaction data | Not publically available |
-| `data/postpaid` | Postpaid transaction data | Not publically available |
-| `data/prepaid_parquet'| New prepaid transaction data | Not publically available |
-| `data/ContractLocations' | Contract location data | Not publically available |
-| `data/capetown_buildings2.parquet' | Geospatial building data from Overture Maps | Download from the API or https://explore.overturemaps.org/#15/38.90678/-77.03649 |
-| `data/prediction_merged_{year}.csv'| SHS predictions from Mask2Former model | Not publically available|
-| `data/checked_01132026.csv' | Visually checked SHS predictions for SSEG registrations | Not publically available|
-| `data/raw/Loadshedding_schedule.csv'
+|---------|--------------|----------------|
+| `data/old_prepaid` | Old prepaid transaction data | Not publicly available |
+| `data/postpaid` | Postpaid transaction data | Not publicly available |
+| `data/prepaid_parquet` | New prepaid transaction data | Not publicly available |
+| `data/ContractLocations` | Contract location data | Not publicly available |
+| `data/capetown_buildings2.parquet` | Geospatial building data from Overture Maps | Download from the API or [Overture Maps Explorer](https://explore.overturemaps.org/#15/38.90678/-77.03649) |
+| `data/prediction_merged_{year}.csv` | SHS predictions from Mask2Former model | Not publicly available |
+| `data/checked_01132026.csv` | Visually checked SHS predictions for SSEG registrations | Not publicly available |
+| `data/raw/Load_shedding_Blocks.geojson` | Load shedding blocks geospatial data | Download from Cape Town Open Data Portal: [Link](https://odp-cctegis.opendata.arcgis.com/datasets/baa72a23f28d4a6e91d9b7f13874a7f3/explore) |
+| `data/raw/Loadshedding_schedule.csv` | Load shedding schedule | Download from Cape Town Open Data Portal: [Link](https://odp-cctegis.opendata.arcgis.com/datasets/baa72a23f28d4a6e91d9b7f13874a7f3/explore) |
