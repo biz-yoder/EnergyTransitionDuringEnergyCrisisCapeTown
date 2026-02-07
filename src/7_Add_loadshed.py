@@ -8,7 +8,7 @@ import time
 import re
 
 #Paths
-LOADSHED_FILE = "/home/ey53/vscode-server-backup/CapeTown_Workflow/Loadshedding_schedule.csv"
+LOADSHED_FILE = "data/raw/Loadshedding_schedule.csv"
 LOADSHED_FILE = "data/raw/Loadshedding_schedule.csv"
 BLOCKS_DIR = "output/6_out"
 OUTPUT_DIR = "output/7_out"
