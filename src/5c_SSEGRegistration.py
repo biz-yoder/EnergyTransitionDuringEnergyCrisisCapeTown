@@ -9,8 +9,8 @@ Date: 02/2026
 import pandas as pd
 import numpy as np
 
-# Paths (update to your local files)
-PARQUET_PATH = "data/combined.parquet"
+# Paths
+PARQUET_PATH = "data/5b_out/combined.parquet
 CSV_PATH = "data/checked_01132026.csv"
 OUTPUT_FILE = "output/with_sseg_reg.parquet"
 
