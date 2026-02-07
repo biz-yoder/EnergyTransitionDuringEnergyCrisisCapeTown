@@ -11,8 +11,8 @@ import os
 import numpy as np
 
 # Paths
-parquet_dir = "./5a_out"
-parquet_out = "./5b_out"
+parquet_dir = "output/5a_out"
+parquet_out = "output/5b_out"
 
 # Find all parquet files
 parquet_files = glob.glob(os.path.join(parquet_dir, "*.parquet"))
