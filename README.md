@@ -37,7 +37,7 @@ The codebase is designed to be modular and reproducible, and is organized as fol
 │   ├── 
 │   └── 
 │
-├── environment.yml / requirements.txt
+├── requirements.txt
 ├── README.md
 └── LICENSE
 ```
