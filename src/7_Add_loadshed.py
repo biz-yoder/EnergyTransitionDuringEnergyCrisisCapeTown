@@ -9,8 +9,10 @@ import re
 
 #Paths
 LOADSHED_FILE = "/home/ey53/vscode-server-backup/CapeTown_Workflow/Loadshedding_schedule.csv"
-BLOCKS_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/6_out"
-OUTPUT_DIR = "/home/ey53/vscode-server-backup/CapeTown_Workflow/7_out"
+LOADSHED_FILE = "data/raw/Loadshedding_schedule.csv"
+BLOCKS_DIR = "output/6_out"
+OUTPUT_DIR = "output/7_out"
+
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 #######################################
