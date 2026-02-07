@@ -1,4 +1,9 @@
-# Add load shedding monthly duration data to each transaction 
+"""
+Add load shedding monthly duration data to each transaction .
+
+Author: Elizabeth Yoder
+Date: February 2026
+"""
 
 import os
 import pandas as pd
