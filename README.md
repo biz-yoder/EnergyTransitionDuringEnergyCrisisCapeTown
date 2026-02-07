@@ -41,3 +41,14 @@ The codebase is designed to be modular and reproducible, and is organized as fol
 ├── README.md
 └── LICENSE
 ```
+## Data
+
+| Dataset | Description  | Source / Notes  |
+| --------| ------------ | --------------- |
+| `data/old_prepaid`| Old prepaid transaction data | Not publically available |
+| `data/postpaid` | Postpaid transaction data | Not publically available |
+| `data/prepaid_parquet'| New prepaid transaction data | Not publically available |
+| `data/ContractLocations' | Contract location data | Not publically available |
+| `data/capetown_buildings2.parquet' | Geospatial building data from Overture Maps | Download from the API or https://explore.overturemaps.org/#15/38.90678/-77.03649 |
+| `data/prediction_merged_{year}.csv'| SHS predictions from Mask2Former model | Not publically available|
+| `data/checked_01132026.csv' | Visually checked SHS predictions for SSEG registrations | Not publically available|
