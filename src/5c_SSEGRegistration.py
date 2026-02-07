@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 # Paths
-PARQUET_PATH = "data/5b_out/combined.parquet
+PARQUET_PATH = "output/5b_out/combined.parquet
 CSV_PATH = "data/checked_01132026.csv"
 OUTPUT_FILE = "output/with_sseg_reg.parquet"
 
